@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lumen — Веб-студия с ИИ</title>
+<meta name="description" content="Сайты и веб-приложения со встроенным интеллектом: чат-боты, умный поиск, автоматизация, кастомная логика. Измеримый результат для бизнеса.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;0,900;1,600&display=swap" rel="stylesheet">
+
+<style>
+  /* ===== Design tokens ===== */
+  :root {
+    --accent: #eab308;            /* акцент (легко меняется) */
+    --accent-rgb: 234, 179, 8;
+    --ink: #16161a;
+    --ink-strong: #0d0d10;
+    --page-bg: #ececed;
+    --btn-text: #f4f4f5;
+    --maxw: 1180px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--page-bg);
+    color: var(--ink);
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2 {
+    font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    letter-spacing: -0.02em;
+  }
+  h1 { line-height: 1.0; }
+
+  a { color: var(--ink-strong); text-decoration: none; }
+  a:hover { color: rgba(13, 13, 16, 0.6); }
+  ::selection { background: rgba(20, 20, 25, 0.15); }
+
+  input, textarea { font-family: inherit; color: var(--ink); }
+  input::placeholder, textarea::placeholder { color: rgba(22, 22, 28, 0.42); }
+
+  @keyframes floatA { 0%,100% { transform: translate(0,0) scale(1); }   50% { transform: translate(7vw, 5vh) scale(1.18); } }
+  @keyframes floatB { 0%,100% { transform: translate(0,0) scale(1.1); } 50% { transform: translate(-6vw, -4vh) scale(0.9); } }
+  @keyframes floatC { 0%,100% { transform: translate(0,0) scale(1); }   50% { transform: translate(5vw, -6vh) scale(1.22); } }
+
+  .page { position: relative; min-height: 100vh; overflow-x: hidden; }
+
+  /* ===== Living monochrome background ===== */
+  .bg {
+    position: fixed; inset: 0; z-index: 0; overflow: hidden;
+    background: radial-gradient(130% 120% at 50% -10%, #fbfbfc 0%, #e7e7ec 55%, #d4d4db 100%);
+  }
+  .bg__layer { position: absolute; inset: -25%; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(75px); opacity: 0.9; will-change: transform; }
+  .blob--a { top: 2%;  left: 4%;  width: min(70vw, 900px); height: min(70vw, 900px); background: radial-gradient(circle, rgba(150,150,165,0.55) 0%, transparent 70%); animation: floatA 30s ease-in-out infinite; }
+  .blob--b { top: 30%; left: 52%; width: min(60vw, 760px); height: min(60vw, 760px); background: radial-gradient(circle, rgba(70,70,82,0.32) 0%, transparent 70%);   animation: floatB 38s ease-in-out infinite; }
+  .blob--c { top: 48%; left: 10%; width: min(55vw, 680px); height: min(55vw, 680px); background: radial-gradient(circle, rgba(255,255,255,0.85) 0%, transparent 70%); animation: floatC 34s ease-in-out infinite; }
+  .bg__vignette { position: absolute; inset: 0; background: radial-gradient(78% 62% at 50% 42%, transparent 46%, rgba(210,210,218,0.5) 100%); }
+  .bg__scanlines { position: absolute; inset: 0; opacity: 0.35; mix-blend-mode: multiply; background-image: repeating-linear-gradient(0deg, rgba(20,20,25,0.02) 0 1px, transparent 1px 3px); }
+
+  body.no-anim .blob { animation: none; }
+
+  /* ===== Nav ===== */
+  .nav {
+    position: fixed; top: 18px; left: 50%; transform: translateX(-50%); z-index: 50;
+    width: calc(100% - 32px); max-width: var(--maxw);
+    display: flex; align-items: center; justify-content: space-between; gap: 20px;
+    padding: 12px 14px 12px 22px;
+    background: rgba(255,255,255,0.5);
+    backdrop-filter: blur(26px) saturate(150%); -webkit-backdrop-filter: blur(26px) saturate(150%);
+    border: 1px solid rgba(255,255,255,0.7); border-radius: 22px;
+    box-shadow: 0 18px 40px rgba(30,30,45,0.12), inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+  .nav__brand { display: flex; align-items: center; gap: 11px; color: var(--ink-strong); }
+  .brand-dot { width: 12px; height: 12px; border-radius: 50%; background: radial-gradient(circle at 34% 28%, #6a6a72, #16161a 70%); box-shadow: 0 2px 8px rgba(20,20,30,0.3); }
+  .brand-name { font-family: 'Playfair Display', Georgia, serif; font-weight: 800; font-size: 22px; letter-spacing: -0.01em; }
+  .nav__links { display: flex; align-items: center; gap: 28px; font-size: 14.5px; font-weight: 500; color: rgba(22,22,28,0.6); }
+  .nav__links a { color: inherit; }
+  .nav__links a:hover { color: var(--ink-strong); }
+
+  .btn {
+    display: inline-block; cursor: pointer; font-family: inherit; text-align: center;
+    border-radius: 14px; font-weight: 700; color: var(--btn-text);
+    background: var(--accent); border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: 0 8px 20px rgba(20,20,30,0.28);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+  }
+  .btn:hover { color: var(--btn-text); transform: translateY(-2px); filter: brightness(1.04); box-shadow: 0 14px 30px rgba(20,20,30,0.34); }
+  .nav__cta { flex-shrink: 0; padding: 11px 20px; font-size: 14.5px; }
+
+  .btn-ghost {
+    display: inline-block; cursor: pointer; font-weight: 600; color: var(--ink);
+    background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.8);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 8px 20px rgba(30,30,45,0.1), inset 0 1px 0 rgba(255,255,255,0.9);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .btn-ghost:hover { color: var(--ink); transform: translateY(-2px); box-shadow: 0 12px 26px rgba(30,30,45,0.14), inset 0 1px 0 rgba(255,255,255,0.9); }
+
+  /* ===== Layout ===== */
+  .main { position: relative; z-index: 10; max-width: var(--maxw); margin: 0 auto; padding: 0 20px 110px; }
+  section[id] { scroll-margin-top: 100px; }
+
+  .eyebrow { font-size: 12.5px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); }
+  .section-head { margin-bottom: 40px; }
+  .section-title { margin: 14px 0 0; font-size: clamp(32px, 4vw, 52px); letter-spacing: -0.035em; font-weight: 800; }
+
+  /* ===== Hero ===== */
+  .hero { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 150px 0 80px; }
+  .hero__rings { position: absolute; inset: 0; z-index: 0; pointer-events: none; display: grid; place-items: center; overflow: visible; }
+  .ring { position: absolute; border-radius: 50%; }
+  .ring--1 { width: min(760px, 86vw); height: min(760px, 86vw); border: 1px solid rgba(20,20,25,0.06); }
+  .ring--2 { width: min(520px, 62vw); height: min(520px, 62vw); border: 1px solid rgba(20,20,25,0.08); }
+  .ring--orb {
+    width: min(300px, 40vw); height: min(300px, 40vw);
+    background: radial-gradient(circle at 38% 32%, rgba(255,255,255,0.85), rgba(255,255,255,0.4) 55%, rgba(255,255,255,0.05) 75%);
+    border: 1px solid rgba(255,255,255,0.9);
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    box-shadow: inset 0 2px 16px rgba(255,255,255,0.9), 0 50px 100px rgba(30,30,45,0.22);
+  }
+  .hero__inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px; border-radius: 100px;
+    background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.8);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    font-size: 12.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(22,22,28,0.68);
+    box-shadow: 0 6px 16px rgba(30,30,45,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+  .badge__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+  .hero__title {
+    margin: 30px 0 0; font-size: clamp(46px, 8.4vw, 108px); line-height: 0.97; letter-spacing: -0.045em;
+    font-weight: 800; max-width: 13ch; text-wrap: balance;
+    background: linear-gradient(180deg, #0c0c10 25%, #5c5c66 125%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero__sub { margin: 30px 0 0; font-size: clamp(16px, 1.7vw, 21px); line-height: 1.55; color: rgba(22,22,28,0.58); max-width: 54ch; font-weight: 400; text-wrap: pretty; }
+  .hero__actions { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 42px; }
+  .hero__actions .btn { padding: 16px 30px; font-size: 16px; box-shadow: 0 16px 34px rgba(20,20,30,0.32); }
+  .hero__actions .btn-ghost { padding: 16px 30px; font-size: 16px; border-radius: 16px; }
+
+  .hero__stats { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 54px; justify-content: center; margin-top: 78px; }
+  .stat { text-align: center; }
+  .stat__num { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; }
+  .stat__num small { font-size: 19px; font-weight: 600; }
+  .stat__label { font-size: 13px; color: rgba(22,22,28,0.48); margin-top: 5px; letter-spacing: 0.02em; }
+
+  /* ===== Glass card base ===== */
+  .card {
+    background: rgba(255,255,255,0.52);
+    backdrop-filter: blur(30px) saturate(140%); -webkit-backdrop-filter: blur(30px) saturate(140%);
+    border: 1px solid rgba(255,255,255,0.75); border-radius: 28px;
+    box-shadow: 0 30px 60px rgba(30,30,45,0.13), inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+  .tilt { transition: transform 0.25s ease; transform-style: preserve-3d; will-change: transform; }
+
+  .grid { display: grid; gap: 18px; }
+  .grid--services { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+  .grid--cases    { grid-template-columns: repeat(auto-fit, minmax(285px, 1fr)); }
+  .grid--process  { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .grid--team     { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .grid--reviews  { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+
+  /* ===== Services ===== */
+  .services-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 40px; }
+  .services-head p { max-width: 42ch; margin: 0; font-size: 15.5px; line-height: 1.5; color: rgba(22,22,28,0.55); }
+  .service { padding: 32px 28px 34px; }
+  .icon-box { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 18px; background: var(--ink-strong); box-shadow: 0 10px 22px rgba(20,20,30,0.28); }
+  .card h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+  .service h3 { margin: 24px 0 0; }
+  .service p { margin: 12px 0 0; font-size: 14.8px; line-height: 1.55; color: rgba(22,22,28,0.58); }
+
+  /* ===== Cases ===== */
+  .case { overflow: hidden; }
+  .case__preview {
+    height: 168px; display: grid; place-items: center; border-bottom: 1px solid rgba(20,20,25,0.06);
+    background-image: repeating-linear-gradient(135deg, rgba(20,20,25,0.05) 0 10px, rgba(20,20,25,0.015) 10px 20px);
+  }
+  .case__preview span { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px; color: rgba(22,22,28,0.38); letter-spacing: 0.04em; }
+  .case__body { padding: 26px 26px 30px; }
+  .tag {
+    display: inline-block; padding: 5px 12px; border-radius: 100px; font-size: 12px; font-weight: 600; color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.1); border: 1px solid rgba(var(--accent-rgb), 0.32);
+  }
+  .case h3 { margin: 16px 0 0; font-size: 19px; font-weight: 700; }
+  .case p { margin: 10px 0 0; font-size: 14.5px; line-height: 1.5; color: rgba(22,22,28,0.55); }
+  .metric { margin-top: 20px; font-size: 30px; font-weight: 800; letter-spacing: -0.03em; color: var(--accent); }
+  .metric small { font-size: 14px; font-weight: 600; color: rgba(22,22,28,0.5); }
+
+  /* ===== Process ===== */
+  .step {
+    padding: 30px 26px 32px; border-radius: 26px;
+    background: rgba(255,255,255,0.5);
+    backdrop-filter: blur(26px) saturate(140%); -webkit-backdrop-filter: blur(26px) saturate(140%);
+    border: 1px solid rgba(255,255,255,0.7);
+    box-shadow: 0 24px 50px rgba(30,30,45,0.11), inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+  .step__num { font-size: 44px; font-weight: 800; letter-spacing: -0.04em; color: rgba(20,20,25,0.14); }
+  .step h3 { margin: 16px 0 0; font-size: 19px; font-weight: 700; }
+  .step p { margin: 10px 0 0; font-size: 14.5px; line-height: 1.5; color: rgba(22,22,28,0.56); }
+
+  /* ===== Team ===== */
+  .member {
+    padding: 32px 24px; text-align: center; border-radius: 26px;
+    background: rgba(255,255,255,0.5);
+    backdrop-filter: blur(26px) saturate(140%); -webkit-backdrop-filter: blur(26px) saturate(140%);
+    border: 1px solid rgba(255,255,255,0.7);
+    box-shadow: 0 24px 50px rgba(30,30,45,0.11), inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+  .avatar {
+    width: 78px; height: 78px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center;
+    font-size: 25px; font-weight: 800; letter-spacing: -0.02em; color: var(--btn-text);
+    background: linear-gradient(150deg, #2a2a30, #0d0d10);
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 14px 30px rgba(20,20,30,0.3), inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+  .member h3 { margin: 20px 0 0; font-size: 18px; font-weight: 700; }
+  .member p { margin: 5px 0 0; font-size: 13.5px; color: rgba(22,22,28,0.5); }
+
+  /* ===== Clients / testimonials ===== */
+  .logos { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+  .logo {
+    flex: 1 1 120px; height: 62px; border-radius: 16px; display: grid; place-items: center;
+    background: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.65);
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11.5px; color: rgba(22,22,28,0.35); letter-spacing: 0.08em;
+  }
+  .quote {
+    padding: 30px 28px; border-radius: 26px;
+    background: rgba(255,255,255,0.5);
+    backdrop-filter: blur(26px) saturate(140%); -webkit-backdrop-filter: blur(26px) saturate(140%);
+    border: 1px solid rgba(255,255,255,0.7);
+    box-shadow: 0 24px 50px rgba(30,30,45,0.11), inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+  .quote__mark { font-size: 34px; line-height: 1; color: rgba(20,20,25,0.25); font-weight: 800; }
+  .quote p { margin: 6px 0 0; font-size: 15.5px; line-height: 1.6; color: rgba(22,22,28,0.6); font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
+  .quote__name { margin-top: 20px; font-size: 14px; font-weight: 700; }
+  .quote__role { font-size: 13px; color: rgba(22,22,28,0.48); }
+
+  /* ===== FAQ ===== */
+  .faq-list { display: flex; flex-direction: column; gap: 12px; max-width: 820px; }
+  .faq {
+    border-radius: 20px; overflow: hidden;
+    background: rgba(255,255,255,0.48);
+    backdrop-filter: blur(24px) saturate(140%); -webkit-backdrop-filter: blur(24px) saturate(140%);
+    border: 1px solid rgba(255,255,255,0.68);
+    box-shadow: 0 16px 34px rgba(30,30,45,0.09), inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+  .faq__q {
+    width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 22px 24px; background: transparent; border: none; cursor: pointer; text-align: left; color: var(--ink);
+    font-family: inherit;
+  }
+  .faq__q span:first-child { font-size: 16.5px; font-weight: 600; }
+  .faq__chev { flex-shrink: 0; width: 26px; height: 26px; display: grid; place-items: center; font-size: 20px; font-weight: 400; color: var(--accent); transition: transform 0.25s ease; }
+  .faq.open .faq__chev { transform: rotate(45deg); }
+  .faq__a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  .faq__a p { margin: 0; padding: 0 24px 24px; font-size: 15px; line-height: 1.6; color: rgba(22,22,28,0.62); max-width: 68ch; }
+
+  /* ===== Contact / CTA ===== */
+  .cta {
+    position: relative; overflow: hidden; padding: clamp(38px, 5vw, 66px); border-radius: 34px;
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(36px) saturate(150%); -webkit-backdrop-filter: blur(36px) saturate(150%);
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow: 0 40px 90px rgba(30,30,45,0.16), inset 0 1px 0 rgba(255,255,255,0.95);
+  }
+  .cta__glow { position: absolute; top: -40%; left: 25%; width: 55%; height: 120%; background: radial-gradient(circle, rgba(255,255,255,0.9), transparent 65%); filter: blur(40px); pointer-events: none; }
+  .cta__grid { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 44px; align-items: center; }
+  .cta h2 { margin: 0; font-size: clamp(32px, 4.2vw, 54px); letter-spacing: -0.035em; font-weight: 800; line-height: 1.03; text-wrap: balance; }
+  .cta__lead { margin: 18px 0 0; font-size: 16.5px; line-height: 1.55; color: rgba(22,22,28,0.62); max-width: 44ch; }
+  .cta__meta { display: flex; flex-wrap: wrap; gap: 10px 26px; margin-top: 26px; font-size: 14.5px; color: rgba(22,22,28,0.5); }
+  .cta__meta span { font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
+
+  .form { display: flex; flex-direction: column; gap: 12px; }
+  .form input, .form textarea {
+    padding: 15px 18px; border-radius: 14px; background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(20,20,25,0.12); font-size: 15px; outline: none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .form textarea { resize: vertical; }
+  .form input:focus, .form textarea:focus { border-color: rgba(var(--accent-rgb), 0.6); box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 0 0 3px rgba(var(--accent-rgb), 0.14); }
+  .form .btn { margin-top: 4px; padding: 15px 24px; border-radius: 14px; font-size: 16px; box-shadow: 0 14px 30px rgba(20,20,30,0.3); }
+
+  .form-success { padding: 40px 28px; text-align: center; border-radius: 18px; background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.8); }
+  .form-success__check { width: 52px; height: 52px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; background: var(--ink-strong); color: #fff; font-size: 24px; }
+  .form-success h3 { margin: 18px 0 0; font-size: 20px; font-weight: 700; }
+  .form-success p { margin: 8px 0 0; font-size: 14.5px; color: rgba(22,22,28,0.6); }
+
+  /* ===== Footer ===== */
+  .footer { position: relative; z-index: 10; border-top: 1px solid rgba(20,20,25,0.08); margin-top: 40px; }
+  .footer__inner { max-width: var(--maxw); margin: 0 auto; padding: 40px 20px; display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: space-between; }
+  .footer__brand { display: flex; align-items: center; gap: 10px; }
+  .footer__brand .brand-dot { width: 11px; height: 11px; box-shadow: none; }
+  .footer__brand .brand-name { font-size: 20px; }
+  .footer__tag { font-size: 13.5px; color: rgba(22,22,28,0.42); margin-left: 6px; }
+  .footer__contacts { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 14px; color: rgba(22,22,28,0.5); font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
+  .footer__copy { font-size: 13px; color: rgba(22,22,28,0.4); }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 760px) {
+    .nav__links { display: none; }
+    .nav { padding: 10px 12px 10px 18px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .blob { animation: none; }
+    .tilt { transition: none; }
+  }
+</style>
+</head>
+
+<body>
+<div class="page" id="top">
+
+  <!-- ===== LIVING MONOCHROME BACKGROUND ===== -->
+  <div class="bg" aria-hidden="true">
+    <div class="bg__layer" data-ps="0.14"><div class="blob blob--a"></div></div>
+    <div class="bg__layer" data-ps="0.07"><div class="blob blob--b"></div></div>
+    <div class="bg__layer" data-ps="0.22"><div class="blob blob--c"></div></div>
+    <div class="bg__vignette"></div>
+    <div class="bg__scanlines"></div>
+  </div>
+
+  <!-- ===== NAV ===== -->
+  <nav class="nav">
+    <a href="#top" class="nav__brand">
+      <span class="brand-dot"></span>
+      <span class="brand-name">Lumen</span>
+    </a>
+    <div class="nav__links">
+      <a href="#services">Услуги</a>
+      <a href="#cases">Кейсы</a>
+      <a href="#process">Процесс</a>
+      <a href="#team">Команда</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <a href="#contact" class="btn nav__cta">Обсудить проект</a>
+  </nav>
+
+  <!-- ===== CONTENT ===== -->
+  <main class="main">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero__rings" aria-hidden="true">
+        <div class="ring ring--1" data-pm="14"></div>
+        <div class="ring ring--2" data-pm="26"></div>
+        <div class="ring ring--orb" data-pm="42"></div>
+      </div>
+
+      <div class="hero__inner">
+        <div class="badge" data-pm="8">
+          <span class="badge__dot"></span>
+          Веб-студия · ИИ
+        </div>
+        <h1 class="hero__title">ИИ, который работает на бизнес</h1>
+        <p class="hero__sub">Сайты и веб-приложения со встроенным интеллектом: чат-боты, умный поиск, автоматизация, кастомная логика. Не «красиво нарисуем» — а измеримый результат.</p>
+        <div class="hero__actions">
+          <a href="#contact" class="btn">Обсудить проект</a>
+          <a href="#cases" class="btn-ghost">Смотреть кейсы</a>
+        </div>
+      </div>
+
+      <div class="hero__stats" data-pm="6">
+        <div class="stat"><div class="stat__num">4</div><div class="stat__label">человека в команде</div></div>
+        <div class="stat"><div class="stat__num">2–3<small> нед.</small></div><div class="stat__label">до запуска лендинга</div></div>
+        <div class="stat"><div class="stat__num">100%</div><div class="stat__label">код и данные — ваши</div></div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section id="services" style="padding-top: 60px;">
+      <div class="services-head">
+        <div>
+          <div class="eyebrow">Услуги</div>
+          <h2 class="section-title">Что мы делаем</h2>
+        </div>
+        <p>От продающего лендинга до продукта с собственной ИИ-логикой на ваших данных.</p>
+      </div>
+      <div class="grid grid--services">
+
+        <div class="card service tilt" data-tilt>
+          <div class="icon-box"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="13" r="9" stroke="rgba(255,255,255,0.92)" stroke-width="1.7"></circle><circle cx="14" cy="13" r="2.4" fill="#fff"></circle></svg></div>
+          <h3>Лендинг + ИИ-фича</h3>
+          <p>Продающая страница со встроенным ИИ-ассистентом или умным подбором под запрос клиента.</p>
+        </div>
+
+        <div class="card service tilt" data-tilt>
+          <div class="icon-box"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="5" y="5" width="7.5" height="7.5" rx="2" stroke="rgba(255,255,255,0.92)" stroke-width="1.6"></rect><rect x="15.5" y="5" width="7.5" height="7.5" rx="2" stroke="rgba(255,255,255,0.92)" stroke-width="1.6"></rect><rect x="5" y="15.5" width="7.5" height="7.5" rx="2" stroke="rgba(255,255,255,0.92)" stroke-width="1.6"></rect><rect x="15.5" y="15.5" width="7.5" height="7.5" rx="2" fill="#fff"></rect></svg></div>
+          <h3>Корпоративный сайт</h3>
+          <p>Многостраничный сайт с контентом, аналитикой и автоматизацией рутинных процессов.</p>
+        </div>
+
+        <div class="card service tilt" data-tilt>
+          <div class="icon-box"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="8.3" y="8.3" width="11.4" height="11.4" rx="2.4" transform="rotate(45 14 14)" stroke="rgba(255,255,255,0.92)" stroke-width="1.7"></rect><circle cx="14" cy="14" r="2.2" fill="#fff"></circle></svg></div>
+          <h3>Веб-приложение с ИИ</h3>
+          <p>Продукт с собственной ИИ-логикой под ваши процессы, интеграции и данные.</p>
+        </div>
+
+        <div class="card service tilt" data-tilt>
+          <div class="icon-box"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="9" stroke="rgba(255,255,255,0.92)" stroke-width="1.7"></circle><circle cx="14" cy="14" r="4" stroke="#fff" stroke-width="1.7"></circle></svg></div>
+          <h3>Абонентская поддержка</h3>
+          <p>Развитие, мониторинг и дообучение ИИ после запуска. Держим продукт в форме.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CASES -->
+    <section id="cases" style="padding-top: 130px;">
+      <div class="section-head">
+        <div class="eyebrow">Кейсы</div>
+        <h2 class="section-title">Было → стало</h2>
+      </div>
+      <div class="grid grid--cases">
+
+        <div class="card case tilt" data-tilt>
+          <div class="case__preview"><span>превью проекта</span></div>
+          <div class="case__body">
+            <span class="tag">Семантический поиск</span>
+            <h3>Интернет-магазин</h3>
+            <p>Было: поиск по точному совпадению. Стало: ИИ-поиск, понимающий смысл запроса.</p>
+            <div class="metric">+34% <small>конверсия поиска</small></div>
+          </div>
+        </div>
+
+        <div class="card case tilt" data-tilt>
+          <div class="case__preview"><span>превью проекта</span></div>
+          <div class="case__body">
+            <span class="tag">Чат-бот-квалификатор</span>
+            <h3>Сервис услуг</h3>
+            <p>Было: заявки вручную обрабатывали менеджеры. Стало: бот квалифицирует и распределяет.</p>
+            <div class="metric">−60% <small>времени на заявку</small></div>
+          </div>
+        </div>
+
+        <div class="card case tilt" data-tilt>
+          <div class="case__preview"><span>превью проекта</span></div>
+          <div class="case__body">
+            <span class="tag">ИИ по документации</span>
+            <h3>База знаний</h3>
+            <p>Было: длинный FAQ, который никто не читал. Стало: ассистент, отвечающий по базе.</p>
+            <div class="metric">−45% <small>обращений в саппорт</small></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- PROCESS -->
+    <section id="process" style="padding-top: 130px;">
+      <div class="section-head">
+        <div class="eyebrow">Процесс</div>
+        <h2 class="section-title">Как мы работаем</h2>
+      </div>
+      <div class="grid grid--process">
+        <div class="step">
+          <div class="step__num">01</div>
+          <h3>Бриф</h3>
+          <p>Разбираем задачу, цели и данные. Ищем, где ИИ даст реальный эффект.</p>
+        </div>
+        <div class="step">
+          <div class="step__num">02</div>
+          <h3>Дизайн</h3>
+          <p>Проектируем интерфейс и сценарии работы ИИ. Прототип и визуал.</p>
+        </div>
+        <div class="step">
+          <div class="step__num">03</div>
+          <h3>Разработка</h3>
+          <p>Собираем сайт и внедряем ИИ-логику. Интеграции, тесты, оптимизация.</p>
+        </div>
+        <div class="step">
+          <div class="step__num">04</div>
+          <h3>Запуск и поддержка</h3>
+          <p>Публикуем, следим за метриками, дообучаем и развиваем продукт.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEAM -->
+    <section id="team" style="padding-top: 130px;">
+      <div class="section-head">
+        <div class="eyebrow">Команда</div>
+        <h2 class="section-title">Четверо, кто это делает</h2>
+      </div>
+      <div class="grid grid--team">
+        <div class="member tilt" data-tilt>
+          <div class="avatar">ЕБ</div>
+          <h3>Егор Бондарев</h3>
+          <p>Дизайн</p>
+        </div>
+        <div class="member tilt" data-tilt>
+          <div class="avatar">НГ</div>
+          <h3>Никита Голубев</h3>
+          <p>Фронтенд</p>
+        </div>
+        <div class="member tilt" data-tilt>
+          <div class="avatar">ИК</div>
+          <h3>Иван Капанов</h3>
+          <p>ИИ-инженер</p>
+        </div>
+        <div class="member tilt" data-tilt>
+          <div class="avatar">ОЗ</div>
+          <h3>Олег Зубрилин</h3>
+          <p>ИИ-инженер</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS / CLIENTS -->
+    <section id="clients" style="padding-top: 130px;">
+      <div class="section-head" style="margin-bottom: 32px;">
+        <div class="eyebrow">Отзывы</div>
+        <h2 class="section-title">Нам доверяют</h2>
+      </div>
+      <div class="logos">
+        <div class="logo">логотип</div>
+        <div class="logo">логотип</div>
+        <div class="logo">логотип</div>
+        <div class="logo">логотип</div>
+        <div class="logo">логотип</div>
+      </div>
+      <div class="grid grid--reviews">
+        <div class="quote">
+          <div class="quote__mark">“</div>
+          <p>[ место для отзыва клиента — добавим после запуска ]</p>
+          <div class="quote__name">Имя клиента</div>
+          <div class="quote__role">должность, компания</div>
+        </div>
+        <div class="quote">
+          <div class="quote__mark">“</div>
+          <p>[ место для отзыва клиента — добавим после запуска ]</p>
+          <div class="quote__name">Имя клиента</div>
+          <div class="quote__role">должность, компания</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" style="padding-top: 130px;">
+      <div class="section-head" style="margin-bottom: 32px;">
+        <div class="eyebrow">FAQ</div>
+        <h2 class="section-title">Частые вопросы</h2>
+      </div>
+      <div class="faq-list" id="faqList"><!-- populated by JS --></div>
+    </section>
+
+    <!-- FINAL CTA / CONTACT -->
+    <section id="contact" style="padding-top: 140px;">
+      <div class="cta">
+        <div class="cta__glow"></div>
+        <div class="cta__grid">
+          <div>
+            <h2>Обсудим ваш проект?</h2>
+            <p class="cta__lead">Расскажите про задачу — предложим, где ИИ даст эффект, и оценим сроки после короткого брифа.</p>
+            <div class="cta__meta">
+              <span>эл. почта — скоро</span>
+              <span>telegram — скоро</span>
+            </div>
+          </div>
+          <div id="contactSlot">
+            <form class="form" id="contactForm">
+              <input required placeholder="Ваше имя" name="name" autocomplete="name">
+              <input required placeholder="Телефон, почта или @telegram" name="contact">
+              <textarea rows="3" placeholder="Пара слов о задаче" name="message"></textarea>
+              <button type="submit" class="btn">Отправить заявку</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <span class="brand-dot"></span>
+        <span class="brand-name">Lumen</span>
+        <span class="footer__tag">Веб-студия с ИИ</span>
+      </div>
+      <div class="footer__contacts">
+        <span>эл. почта — скоро</span>
+        <span>telegram — скоро</span>
+        <span>телефон — скоро</span>
+      </div>
+      <div class="footer__copy">© 2026 Lumen</div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ===== FAQ accordion ===== */
+  var faqData = [
+    { q: 'Сколько стоит проект?', a: 'Зависит от объёма. Лендинг с ИИ-фичей — от базового пакета, веб-приложение с кастомным ИИ считаем индивидуально. Точную оценку даём после короткого брифа.' },
+    { q: 'Сколько занимает разработка?', a: 'Лендинг — 2–3 недели. Корпоративный сайт — 4–6 недель. Веб-приложение с кастомной ИИ-логикой — от 6 недель, зависит от интеграций и данных.' },
+    { q: 'Какие ИИ-фичи вы делаете?', a: 'Чат-боты и ассистенты, умный и семантический поиск, автоматизация рутины, а также кастомная ИИ-логика, обученная на ваших данных и процессах.' },
+    { q: 'Кому принадлежит код и данные?', a: 'Всё передаём вам: исходники, доступы и данные. Никакого vendor lock-in — вы не привязаны к нам после запуска.' },
+    { q: 'Что происходит после запуска?', a: 'Предлагаем абонентскую поддержку: мониторинг продукта, доработки и дообучение ИИ по мере роста данных и задач.' }
+  ];
+
+  var faqList = document.getElementById('faqList');
+  var openIndex = 0; // первый открыт по умолчанию
+
+  faqData.forEach(function (item, i) {
+    var el = document.createElement('div');
+    el.className = 'faq';
+
+    var btn = document.createElement('button');
+    btn.className = 'faq__q';
+    btn.type = 'button';
+    btn.setAttribute('aria-expanded', 'false');
+
+    var q = document.createElement('span');
+    q.textContent = item.q;
+    var chev = document.createElement('span');
+    chev.className = 'faq__chev';
+    chev.textContent = '+';
+    btn.appendChild(q);
+    btn.appendChild(chev);
+
+    var ans = document.createElement('div');
+    ans.className = 'faq__a';
+    var p = document.createElement('p');
+    p.textContent = item.a;
+    ans.appendChild(p);
+
+    el.appendChild(btn);
+    el.appendChild(ans);
+    faqList.appendChild(el);
+
+    btn.addEventListener('click', function () {
+      var isOpen = el.classList.contains('open');
+      // закрыть все
+      Array.prototype.forEach.call(faqList.children, function (c) {
+        c.classList.remove('open');
+        c.querySelector('.faq__a').style.maxHeight = null;
+        c.querySelector('.faq__q').setAttribute('aria-expanded', 'false');
+      });
+      if (!isOpen) {
+        el.classList.add('open');
+        ans.style.maxHeight = ans.scrollHeight + 'px';
+        btn.setAttribute('aria-expanded', 'true');
+        openIndex = i;
+      } else {
+        openIndex = -1;
+      }
+    });
+  });
+
+  // раскрыть первый
+  (function () {
+    if (openIndex < 0) return;
+    var first = faqList.children[openIndex];
+    if (!first) return;
+    first.classList.add('open');
+    var ans = first.querySelector('.faq__a');
+    first.querySelector('.faq__q').setAttribute('aria-expanded', 'true');
+    // без анимации при первичной отрисовке
+    ans.style.maxHeight = ans.scrollHeight + 'px';
+  })();
+
+  // пересчёт высоты открытого пункта при ресайзе
+  window.addEventListener('resize', function () {
+    var open = faqList.querySelector('.faq.open .faq__a');
+    if (open) open.style.maxHeight = open.scrollHeight + 'px';
+  });
+
+  /* ===== Contact form ===== */
+  var form = document.getElementById('contactForm');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var slot = document.getElementById('contactSlot');
+    slot.innerHTML =
+      '<div class="form-success">' +
+      '<div class="form-success__check">✓</div>' +
+      '<h3>Спасибо, заявка принята</h3>' +
+      '<p>Свяжемся с вами в ближайшее время.</p>' +
+      '</div>';
+  });
+
+  /* ===== Parallax + 3D tilt ===== */
+  if (reduceMotion) return;
+
+  var pmEls = Array.prototype.map.call(document.querySelectorAll('[data-pm]'), function (el) {
+    return { el: el, s: parseFloat(el.getAttribute('data-pm')) };
+  });
+  var psEls = Array.prototype.map.call(document.querySelectorAll('[data-ps]'), function (el) {
+    return { el: el, f: parseFloat(el.getAttribute('data-ps')) };
+  });
+
+  var mx = 0, my = 0, raf = null;
+
+  function apply() {
+    raf = null;
+    var sy = window.scrollY || 0;
+    pmEls.forEach(function (o) { o.el.style.transform = 'translate3d(' + (mx * o.s) + 'px,' + (my * o.s) + 'px,0)'; });
+    psEls.forEach(function (o) { o.el.style.transform = 'translate3d(0,' + (sy * o.f) + 'px,0)'; });
+  }
+  function schedule() { if (!raf) raf = requestAnimationFrame(apply); }
+
+  window.addEventListener('mousemove', function (e) {
+    mx = (e.clientX / window.innerWidth - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
+    schedule();
+  }, { passive: true });
+  window.addEventListener('scroll', schedule, { passive: true });
+
+  // 3D tilt на карточках
+  Array.prototype.forEach.call(document.querySelectorAll('[data-tilt]'), function (el) {
+    el.addEventListener('mousemove', function (e) {
+      var r = el.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width - 0.5;
+      var py = (e.clientY - r.top) / r.height - 0.5;
+      el.style.transform = 'perspective(900px) rotateX(' + (-py * 5.5) + 'deg) rotateY(' + (px * 5.5) + 'deg) translateY(-5px)';
+    });
+    el.addEventListener('mouseleave', function () { el.style.transform = ''; });
+  });
+
+  schedule();
+})();
+</script>
+</body>
+</html>

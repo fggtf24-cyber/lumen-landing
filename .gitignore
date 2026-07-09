@@ -1,0 +1,9 @@
+# Служебное / временное
+.claude/
+_handoff/
+*.zip
+
+# ОС
+Thumbs.db
+.DS_Store
+desktop.ini
