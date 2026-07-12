@@ -1,0 +1,22 @@
+{
+  "name": "lumen-lead-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Приём заявок с лендинга Lumen: доставка в Telegram / email",
+  "type": "commonjs",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.4.1",
+    "nodemailer": "^6.9.16"
+  }
+}

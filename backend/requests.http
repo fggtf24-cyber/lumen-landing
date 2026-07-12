@@ -1,0 +1,35 @@
+### Проверка API руками (VS Code REST Client или JetBrains HTTP Client)
+@base = http://localhost:3000
+
+### Healthcheck
+GET {{base}}/health
+
+### Валидная заявка → 200 { ok: true }, должна прийти в Telegram/на почту
+POST {{base}}/api/lead
+Content-Type: application/json
+
+{
+  "name": "Иван Тестов",
+  "contact": "@fggtf24",
+  "message": "Нужен лендинг для кофейни с онлайн-бронью."
+}
+
+### Невалидная (короткие поля) → 400 { ok:false, errors:["name","contact"] }
+POST {{base}}/api/lead
+Content-Type: application/json
+
+{
+  "name": "И",
+  "contact": ""
+}
+
+### Honeypot заполнен (бот) → 200, но заявка НЕ доставляется
+POST {{base}}/api/lead
+Content-Type: application/json
+
+{
+  "name": "Спам Бот",
+  "contact": "spam@example.com",
+  "message": "куплю ссылки",
+  "company": "заполнено ботом"
+}
