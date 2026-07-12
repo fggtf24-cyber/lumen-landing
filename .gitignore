@@ -1,6 +1,7 @@
 # Служебное / временное
 .claude/
 _handoff/
+_handoff2/
 *.zip
 
 # ОС
