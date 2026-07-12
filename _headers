@@ -1,0 +1,12 @@
+# Серверные заголовки безопасности (формат Netlify / Cloudflare Pages).
+# <meta> покрывает только CSP и Referrer-Policy; HSTS, nosniff, X-Frame-Options
+# и Permissions-Policy обязаны приходить настоящими HTTP-заголовками.
+/*
+  Content-Security-Policy: default-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data:; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'none'
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
