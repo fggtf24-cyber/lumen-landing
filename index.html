@@ -240,8 +240,12 @@
   .footer__brand .stamp { width: 22px; height: 22px; font-size: 11px; box-shadow: none; }
   .footer__links { display: flex; flex-wrap: wrap; gap: 8px 22px; }
 
-  /* ===== Ink reveal base (masks applied via JS) ===== */
+  /* ===== Reveal states ===== */
+  /* data-ink: sumi-e mask reveal (text only — masks would clip box-shadows) */
   [data-ink] { will-change: mask-position; }
+  /* data-rise: opacity fade for shadowed blocks — shadow fades in smoothly, no one-frame pop */
+  [data-rise] { opacity: 0; transition: opacity 0.7s ease; }
+  [data-rise].is-in { opacity: 1; }
 
   /* ===== Responsive ===== */
   @media (max-width: 720px) {
@@ -257,6 +261,7 @@
     html { scroll-behavior: auto; }
     .windline, .contact__stamp { animation: none; }
     [data-ink] { will-change: auto; }
+    [data-rise] { opacity: 1; transition: none; }
     .card, .member, .service-row { transition: none; }
   }
 </style>
@@ -301,7 +306,7 @@
       <div class="eyebrow"><span class="eyebrow__dash"></span> Веб-студия полного цикла · берём проекты</div>
       <h1 class="hero__title" data-ink>Сайты, которые <br><em>работают</em> — и продают</h1>
       <p class="hero__sub" data-ink>Лендинги, корпоративные сайты и веб-приложения — выкованы с точностью клинка. Один удар — один результат: не «красиво нарисуем», а измеримый эффект. При необходимости усилим сайт ИИ.</p>
-      <div class="hero__actions" data-ink>
+      <div class="hero__actions" data-rise>
         <a href="#contact" class="btn">Обсудить проект</a>
         <a href="#cases" class="btn btn--outline">Кейсы ↓</a>
       </div>
@@ -361,7 +366,7 @@
       </div>
       <div class="cases-grid">
 
-        <article class="card" data-ink>
+        <article class="card" data-rise>
           <div class="case-media"><span>превью проекта</span></div>
           <div class="case-body">
             <span class="tag">Редизайн</span>
@@ -374,7 +379,7 @@
           </div>
         </article>
 
-        <article class="card" data-ink>
+        <article class="card" data-rise>
           <div class="case-media"><span>превью проекта</span></div>
           <div class="case-body">
             <span class="tag">Сайт + чат-бот</span>
@@ -387,7 +392,7 @@
           </div>
         </article>
 
-        <article class="card" data-ink>
+        <article class="card" data-rise>
           <div class="case-media"><span>превью проекта</span></div>
           <div class="case-body">
             <span class="tag">Корп. портал</span>
@@ -412,22 +417,22 @@
       </div>
       <div class="process-grid">
         <div class="process-line" aria-hidden="true"></div>
-        <div class="step" data-ink>
+        <div class="step" data-rise>
           <div class="step-num" aria-hidden="true">壱</div>
           <h3>Бриф</h3>
           <p>Разбираем задачу, цели и аудиторию. Определяем структуру и содержание сайта.</p>
         </div>
-        <div class="step" data-ink>
+        <div class="step" data-rise>
           <div class="step-num" aria-hidden="true">弐</div>
           <h3>Дизайн</h3>
           <p>Проектируем структуру и интерфейс сайта. Прототип и визуал.</p>
         </div>
-        <div class="step" data-ink>
+        <div class="step" data-rise>
           <div class="step-num" aria-hidden="true">参</div>
           <h3>Разработка</h3>
           <p>Собираем сайт: вёрстка, интеграции, тесты, оптимизация.</p>
         </div>
-        <div class="step" data-ink>
+        <div class="step" data-rise>
           <div class="step-num step-num--last" aria-hidden="true">肆</div>
           <h3 class="is-accent">Запуск и рост</h3>
           <p>Публикуем, следим за метриками, развиваем сайт.</p>
@@ -443,22 +448,22 @@
         <span class="rule-line" aria-hidden="true"></span>
       </div>
       <div class="team-grid">
-        <div class="member" data-ink>
+        <div class="member" data-rise>
           <div class="member__top"><span class="member__mono">ЕБ</span><span class="member__kanji" aria-hidden="true">筆</span></div>
           <h3>Егор Бондарев</h3>
           <p class="member__role">Дизайн</p>
         </div>
-        <div class="member" data-ink>
+        <div class="member" data-rise>
           <div class="member__top"><span class="member__mono">НГ</span><span class="member__kanji" aria-hidden="true">刀</span></div>
           <h3>Никита Голубев</h3>
           <p class="member__role">Фронтенд</p>
         </div>
-        <div class="member" data-ink>
+        <div class="member" data-rise>
           <div class="member__top"><span class="member__mono">ИК</span><span class="member__kanji" aria-hidden="true">智</span></div>
           <h3>Иван Капанов</h3>
           <p class="member__role">ИИ-инженер</p>
         </div>
-        <div class="member" data-ink>
+        <div class="member" data-rise>
           <div class="member__top"><span class="member__mono">ОЗ</span><span class="member__kanji" aria-hidden="true">機</span></div>
           <h3>Олег Зубрилин</h3>
           <p class="member__role">Бэкенд</p>
@@ -772,6 +777,23 @@
     els.forEach(function (el) { io.observe(el); });
   })();
 
+  /* ===== Fade-up reveal for shadowed blocks (opacity only → shadows never clipped) ===== */
+  (function initRise() {
+    var els = [].slice.call(document.querySelectorAll('[data-rise]'));
+    if (!els.length) return;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        ioSeen = true;
+        io.unobserve(en.target);
+        var idx = els.indexOf(en.target);
+        en.target.style.transitionDelay = ((idx % 4) * 0.08) + 's';
+        en.target.classList.add('is-in');
+      });
+    }, { threshold: 0.15 });
+    els.forEach(function (el) { io.observe(el); });
+  })();
+
   /* ===== Safety net: if IntersectionObserver never fires (unsupported / broken
      environment), reveal all ink elements and snap counters so content is never
      left invisible. In normal browsers IO fires first and this is a no-op. ===== */
@@ -786,6 +808,9 @@
       el.style.webkitMaskImage = ''; el.style.maskImage = '';
       el.style.webkitMaskSize = ''; el.style.maskSize = '';
       el.style.webkitMaskPosition = ''; el.style.maskPosition = '';
+    });
+    [].forEach.call(document.querySelectorAll('[data-rise]'), function (el) {
+      el.classList.add('is-in');
     });
   }, 1800);
 })();
