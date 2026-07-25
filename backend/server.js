@@ -54,17 +54,51 @@ app.post('/api/lead', leadLimiter, async (req, res) => {
   return res.json({ ok: true });
 });
 
+// Отзыв с сайта. Публикуется только после ручной модерации: сюда он лишь
+// доставляется, на сайт попадает, когда его добавят в секцию «Отзывы».
+app.post('/api/review', leadLimiter, async (req, res) => {
+  const body = req.body || {};
+  const name = String(body.name || '').trim();
+  const text = String(body.text || '').trim();
+  const contact = String(body.contact || '').trim();
+
+  if (String(body.company || '').trim()) return res.json({ ok: true }); // honeypot
+
+  const errors = [];
+  if (name.length < 2 || name.length > 80) errors.push('name');
+  if (text.length < 10 || text.length > 4000) errors.push('text');
+  if (contact.length > 200) errors.push('contact');
+  if (errors.length) return res.status(400).json({ ok: false, errors });
+
+  const review = {
+    name,
+    contact: contact || '—',
+    message: text,
+    at: new Date().toISOString(),
+    ip: req.ip,
+    kind: 'review',
+  };
+
+  const results = await Promise.allSettled([notifyTelegram(review), notifyEmail(review)]);
+  if (!results.some((r) => r.status === 'fulfilled' && r.value === true)) {
+    console.error('Отзыв не доставлен:', results.find((r) => r.status === 'rejected')?.reason);
+    return res.status(500).json({ ok: false, error: 'delivery_failed' });
+  }
+  return res.json({ ok: true });
+});
+
 // --- Telegram Bot API. Возвращает true, если реально отправлено. ---
 async function notifyTelegram(lead) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
   if (!token || !chatId) return false;
 
+  const isReview = lead.kind === 'review';
   const text =
-    '🔔 Новая заявка с сайта Lumen\n\n' +
+    (isReview ? '⭐ Отзыв на модерацию (Lumen)\n\n' : '🔔 Новая заявка с сайта Lumen\n\n') +
     `👤 Имя: ${lead.name}\n` +
     `📇 Контакт: ${lead.contact}\n` +
-    `📝 Задача: ${lead.message || '—'}\n` +
+    `${isReview ? '📝 Отзыв' : '📝 Задача'}: ${lead.message || '—'}\n` +
     `🕒 ${lead.at}`;
 
   const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -89,7 +123,7 @@ async function notifyEmail(lead) {
   await transport.sendMail({
     from: process.env.SMTP_FROM || process.env.SMTP_USER,
     to: process.env.LEAD_EMAIL_TO || 'fggtf24@gmail.com',
-    subject: `Новая заявка — Lumen (${lead.name})`,
+    subject: (lead.kind === 'review' ? 'Отзыв на модерацию' : 'Новая заявка') + ` — Lumen (${lead.name})`,
     text: `Имя: ${lead.name}\nКонтакт: ${lead.contact}\nЗадача: ${lead.message || '—'}\nВремя: ${lead.at}\nIP: ${lead.ip}`,
   });
   return true;

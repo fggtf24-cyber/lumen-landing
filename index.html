@@ -174,6 +174,8 @@
     background-image: repeating-linear-gradient(135deg, rgba(28,23,18,0.05) 0 10px, rgba(28,23,18,0.015) 10px 20px);
   }
   .case-media span { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px; letter-spacing: 0.06em; color: rgba(28,23,18,0.4); }
+  .case-media picture { display: block; place-self: stretch; min-height: 0; }
+  .case-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .case-body { display: flex; flex-direction: column; gap: 12px; padding: 26px; flex: 1; }
   .tag { align-self: flex-start; padding: 5px 14px; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--crimson); border: 1px solid rgba(192,57,43,0.5); }
   .case-body h3 { font-weight: 700; font-size: 26px; }
@@ -201,6 +203,27 @@
   .member__kanji { font-family: var(--jp); font-size: 20px; color: rgba(28,23,18,0.3); }
   .member h3 { margin: 18px 0 0; font-weight: 700; font-size: 24px; }
   .member__role { margin: 6px 0 0; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--crimson); }
+
+  /* ===== Reviews ===== */
+  .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 18px; }
+  .review { margin: 0; padding: 24px; background: var(--paper-2); border: 1px solid rgba(28,23,18,0.2); box-shadow: 5px 5px 0 rgba(28,23,18,0.14); }
+  .review blockquote { margin: 0; font-size: 15px; line-height: 1.7; }
+  .review figcaption { margin-top: 14px; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--crimson); }
+  .reviews-empty { margin: 0; font-size: 15px; line-height: 1.65; color: rgba(28,23,18,0.68); }
+
+  .review-add { margin-top: 28px; }
+  .review-add > summary {
+    display: inline-block; cursor: pointer; list-style: none;
+    padding: 14px 28px; font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--cream-2); background: var(--crimson); box-shadow: 3px 3px 0 rgba(28,23,18,0.4);
+    transition: background 0.2s ease;
+  }
+  .review-add > summary::-webkit-details-marker { display: none; }
+  .review-add > summary:hover { background: var(--crimson-dk); }
+  .review-add[open] > summary { margin-bottom: 18px; }
+  .review-form { max-width: 560px; border: 1px solid rgba(28,23,18,0.2); }
+  .review-note { margin: 0; font-size: 13px; line-height: 1.55; color: rgba(28,23,18,0.62); }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 
   /* ===== Dark section (FAQ + contact + footer) ===== */
   .dark-section { position: relative; background: var(--ink); padding: 120px 0 0; scroll-margin-top: 80px; }
@@ -353,6 +376,7 @@
       <a href="#cases">Кейсы</a>
       <a href="#process">Процесс</a>
       <a href="#team">Команда</a>
+      <a href="#reviews">Отзывы</a>
       <a href="#faq">Вопросы</a>
     </div>
     <a href="#contact" class="btn nav__cta">Обсудить</a>
@@ -440,14 +464,20 @@
       <div class="cases-grid">
 
         <article class="card" data-ink>
-          <div class="case-media"><span>превью проекта</span></div>
+          <div class="case-media">
+            <picture>
+              <source srcset="assets/case-therapy.webp" type="image/webp">
+              <img src="assets/case-therapy.jpg" width="1200" height="800" loading="lazy" decoding="async"
+                   alt="Лендинг терапевтической группы: первый экран с фотографией ведущих">
+            </picture>
+          </div>
           <div class="case-body">
-            <span class="tag">Редизайн</span>
-            <h3>Интернет-магазин</h3>
-            <p>Было: медленный устаревший каталог. Стало: быстрый магазин с удобным каталогом и оформлением заказа.</p>
+            <span class="tag">Лендинг</span>
+            <h3>Терапевтическая группа</h3>
+            <p>Набор в закрытую группу: программа, формат, ведущие. Форма заявки с отправкой на почту, антиспам и сжатые фото — сайт грузится быстро.</p>
             <div class="metric">
-              <span class="metric__num">+<span data-count="34">0</span>%</span>
-              <span class="metric__label">рост конверсии</span>
+              <span class="metric__num">−<span data-count="88">0</span>%</span>
+              <span class="metric__label">вес изображений</span>
             </div>
           </div>
         </article>
@@ -514,7 +544,7 @@
     </section>
 
     <!-- TEAM -->
-    <section id="team" class="section section--team">
+    <section id="team" class="section">
       <div class="section-head">
         <span class="stamp" aria-hidden="true">匠</span>
         <h2 class="section-title" data-ink>Команда</h2>
@@ -542,6 +572,40 @@
           <p class="member__role">Бэкенд</p>
         </div>
       </div>
+    </section>
+
+    <!-- REVIEWS -->
+    <section id="reviews" class="section section--team">
+      <div class="section-head">
+        <span class="stamp" aria-hidden="true">声</span>
+        <h2 class="section-title" data-ink>Отзывы</h2>
+        <span class="rule-line" aria-hidden="true"></span>
+      </div>
+
+      <!-- Модерация: одобренный отзыв добавляется сюда вручную блоком
+           <figure class="review"><blockquote>…</blockquote><figcaption>Имя</figcaption></figure> -->
+      <div class="reviews-grid">
+        <p class="reviews-empty">Отзывов пока нет — оставьте первый.</p>
+      </div>
+
+      <details class="review-add">
+        <summary>Оставить отзыв</summary>
+        <div id="reviewSlot" aria-live="polite">
+          <form class="form review-form" id="reviewForm">
+            <input class="hp" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <label class="sr-only" for="r-name">Имя</label>
+            <input required id="r-name" name="name" placeholder="Имя" autocomplete="name">
+            <label class="sr-only" for="r-contact">Контакт для связи, не публикуется</label>
+            <input id="r-contact" name="contact" placeholder="Контакт — не публикуется">
+            <label>
+              <span>Отзыв</span>
+              <textarea required rows="4" id="r-text" name="text" placeholder="Что делали, как шла работа, что получилось."></textarea>
+            </label>
+            <button type="submit" class="form__submit">Отправить на модерацию</button>
+            <p class="review-note">Отзыв попадёт к нам на проверку и появится на сайте после одобрения.</p>
+          </form>
+        </div>
+      </details>
     </section>
   </main>
 
@@ -690,6 +754,49 @@
       '<h3>Заявка принята</h3>' +
       '<p>Свяжемся с вами в ближайшее время.</p>' +
       '</div>';
+  });
+
+  /* ===== Отзыв → на модерацию ===== */
+  // Адрес бэкенда (см. backend/README.md). Пусто = приём ещё не подключён.
+  var API_BASE = '';
+  document.getElementById('reviewForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var form = e.currentTarget;
+    var btn = form.querySelector('.form__submit');
+    var note = form.querySelector('.review-note');
+    var label = btn.textContent;
+
+    function fail() {
+      btn.disabled = false;
+      btn.textContent = label;
+      note.textContent = 'Отправить не получилось. Пришлите отзыв в Telegram @fggtf24 или на fggtf24@gmail.com — опубликуем после проверки.';
+      note.style.color = 'var(--crimson)';
+    }
+
+    if (!API_BASE) return fail();
+
+    btn.disabled = true;
+    btn.textContent = 'Отправляем…';
+    fetch(API_BASE + '/api/review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: form.elements.name.value,
+        contact: form.elements.contact.value,
+        text: form.elements.text.value,
+        company: form.elements.company.value // honeypot
+      })
+    })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); })
+      .then(function () {
+        document.getElementById('reviewSlot').innerHTML =
+          '<div class="form-success">' +
+          '<div class="stamp" aria-hidden="true">承</div>' +
+          '<h3>Спасибо за отзыв</h3>' +
+          '<p>Отправили на модерацию — появится на сайте после проверки.</p>' +
+          '</div>';
+      })
+      .catch(fail);
   });
 
   /* ===== Counters ===== */
