@@ -1,6 +1,0 @@
-# Пароль от почты — не в репозиторий
-config.php
-
-# Логи и счётчики антиспама
-storage/*.log
-storage/rate_*.json

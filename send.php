@@ -1,13 +1,15 @@
 <?php
 /**
- * Приём заявок и отзывов с сайта Lumen. Отправляет письмо на почту.
+ * Приём заявок и отзывов с сайта Lumen.
  * Отвечает JSON: {"ok":true} или {"ok":false,"error":"..."}
  *
- * Форма шлёт поле `type`: "lead" (заявка) или "review" (отзыв на модерацию).
- * Отзыв никуда не публикуется сам — просто приходит письмом, дальше вручную.
+ * Форма шлёт поле `type`:
+ *   lead   — заявка: уходит письмом на почту;
+ *   review — отзыв:  пишется в БД со статусом pending и ждёт модерации
+ *            в /admin. На сайт попадает только после одобрения.
  *
- * Устроен так же, как send.php на shorttermtherapy.ru (первый кейс) — код проверен
- * в бою на Beget, отличия только в наборе полей и в двух типах письма.
+ * Отправка письма устроена так же, как на shorttermtherapy.ru (первый кейс) —
+ * код проверен в бою на Beget.
  */
 
 declare(strict_types=1);
@@ -16,6 +18,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
 require __DIR__ . '/lib/Smtp.php';
+require __DIR__ . '/lib/db.php';
 
 $config = require __DIR__ . '/config.php';
 
@@ -100,6 +103,56 @@ function cleanField(string $value, int $maxLength): string
     return mb_substr(trim(preg_replace('/\s+/u', ' ', $value) ?? ''), 0, $maxLength);
 }
 
+/**
+ * Отправка письма: сначала SMTP, при неудаче — встроенная mail().
+ * Бросает исключение, если не сработало ничего.
+ */
+function notify(array $config, string $subject, string $body, ?string $replyTo): void
+{
+    $recipients = (array) $config['to'];
+
+    $smtpConfigured = !empty($config['smtp']['host'])
+        && !empty($config['smtp']['user'])
+        && $config['smtp']['password'] !== 'ЗАМЕНИТЕ_НА_ПАРОЛЬ';
+
+    if ($smtpConfigured) {
+        try {
+            (new Smtp($config['smtp']))->send($recipients, $subject, $body, $replyTo);
+            return;
+        } catch (Throwable $e) {
+            writeLog($config, 'Ошибка SMTP: ' . $e->getMessage());
+        }
+    } else {
+        writeLog($config, 'SMTP не настроен, пробуем mail()');
+    }
+
+    if (!empty($config['fallback_to_mail_function'])) {
+        $from = $config['smtp']['from'] ?: 'no-reply@' . ($_SERVER['SERVER_NAME'] ?? 'localhost');
+
+        $headers = [
+            'From: =?UTF-8?B?' . base64_encode((string) $config['smtp']['from_name']) . "?= <$from>",
+            'MIME-Version: 1.0',
+            'Content-Type: text/plain; charset=UTF-8',
+        ];
+        if ($replyTo !== null) {
+            $headers[] = 'Reply-To: ' . $replyTo;
+        }
+
+        $sent = @mail(
+            implode(', ', $recipients),
+            '=?UTF-8?B?' . base64_encode($subject) . '?=',
+            $body,
+            implode("\r\n", $headers)
+        );
+
+        if ($sent) {
+            return;
+        }
+    }
+
+    throw new RuntimeException('письмо не ушло ни по SMTP, ни через mail()');
+}
+
 /** Многострочный текст (отзыв, описание задачи): переводы строк оставляем. */
 function cleanText(string $value, int $maxLength): string
 {
@@ -142,23 +195,49 @@ if ($type === 'review') {
         respond(false, 'empty-fields', 422);
     }
 
-    $subject = 'Отзыв на модерацию — сайт Lumen';
+    // Отзыв живёт в БД. Публикуется только после одобрения в /admin.
+    try {
+        $stmt = db($config)->prepare(
+            'INSERT INTO reviews (name, contact, body, status, created_at, ip)
+             VALUES (:name, :contact, :body, \'pending\', NOW(), :ip)'
+        );
+        $stmt->execute([
+            'name'    => $name,
+            'contact' => $contact,
+            'body'    => $text,
+            'ip'      => clientIp(),
+        ]);
+    } catch (Throwable $e) {
+        writeLog($config, 'Не удалось сохранить отзыв: ' . $e->getMessage());
+        respond(false, 'storage-failed', 500);
+    }
+
+    writeLog($config, "Отзыв сохранён на модерацию: $name");
+
+    // Письмо — только уведомление «есть что модерировать». Не критично:
+    // отзыв уже в базе, поэтому ошибка почты не должна валить ответ.
+    $subject = 'Новый отзыв на модерацию — сайт Lumen';
     $body = implode("\n", [
-        'Новый отзыв с сайта. На сайте он НЕ появится, пока вы его не опубликуете.',
+        'На сайте оставили отзыв. Он ждёт модерации и на сайте пока не виден.',
         '',
         'Имя:     ' . $name,
         'Контакт: ' . ($contact !== '' ? $contact : '—') . '  (не публикуется)',
         '',
-        'Текст отзыва:',
+        'Текст:',
         $text,
         '',
         '—',
-        'Чтобы опубликовать: вставьте блок в секцию «Отзывы» (id="reviews") в index.html:',
-        '<figure class="review"><blockquote>' . $text . '</blockquote><figcaption>' . $name . '</figcaption></figure>',
-        '',
+        'Одобрить или отклонить: /admin',
         'Отправлено: ' . date('d.m.Y H:i'),
-        'IP:         ' . clientIp(),
     ]);
+
+    try {
+        notify($config, $subject, $body, null);
+    } catch (Throwable $e) {
+        writeLog($config, 'Отзыв сохранён, но уведомление не ушло: ' . $e->getMessage());
+    }
+
+    respond(true);
 } else {
     $contact = cleanField((string) ($input['contact'] ?? $input['phone'] ?? ''), 150);
     $message = cleanText((string) ($input['message'] ?? ''), 4000);
@@ -185,47 +264,17 @@ if ($type === 'review') {
     ]);
 }
 
-$recipients = (array) $config['to'];
-
-// Если в контакте указана почта — можно ответить прямо из письма кнопкой «Ответить».
+// Заявка: письмо — единственный способ её получить, поэтому ошибка отправки
+// это ошибка запроса. Если в контакте почта — подставляем Reply-To.
 $replyTo = filter_var($contact, FILTER_VALIDATE_EMAIL) ? $contact : null;
+$logLine = "Заявка: $name / $contact";
 
-$logLine = ($type === 'review' ? 'Отзыв' : 'Заявка') . ": $name / " . ($contact !== '' ? $contact : '—');
-
-$smtpConfigured = !empty($config['smtp']['host'])
-    && !empty($config['smtp']['user'])
-    && $config['smtp']['password'] !== 'ЗАМЕНИТЕ_НА_ПАРОЛЬ';
-
-if ($smtpConfigured) {
-    try {
-        (new Smtp($config['smtp']))->send($recipients, $subject, $body, $replyTo);
-        writeLog($config, "Отправлено по SMTP. $logLine");
-        respond(true);
-    } catch (Throwable $e) {
-        writeLog($config, 'Ошибка SMTP: ' . $e->getMessage());
-    }
-} else {
-    writeLog($config, 'SMTP не настроен, пробуем mail()');
-}
-
-if (!empty($config['fallback_to_mail_function'])) {
-    $from = $config['smtp']['from'] ?: 'no-reply@' . ($_SERVER['SERVER_NAME'] ?? 'localhost');
-
-    $headers = [
-        'From: =?UTF-8?B?' . base64_encode((string) $config['smtp']['from_name']) . "?= <$from>",
-        'MIME-Version: 1.0',
-        'Content-Type: text/plain; charset=UTF-8',
-    ];
-    if ($replyTo !== null) {
-        $headers[] = 'Reply-To: ' . $replyTo;
-    }
-
-    if (@mail(implode(', ', $recipients), '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers))) {
-        writeLog($config, "Отправлено через mail(). $logLine");
-        respond(true);
-    }
-
-    writeLog($config, 'Функция mail() тоже не сработала');
+try {
+    notify($config, $subject, $body, $replyTo);
+    writeLog($config, "Отправлено. $logLine");
+    respond(true);
+} catch (Throwable $e) {
+    writeLog($config, 'Не отправлено: ' . $e->getMessage());
 }
 
 // Письмо не ушло — содержимое всё равно в логе, чтобы ничего не потерять.

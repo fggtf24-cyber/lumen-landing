@@ -1,3 +1,24 @@
+<?php
+declare(strict_types=1);
+
+require __DIR__ . '/lib/auth.php';   // e() — экранирование вывода
+require __DIR__ . '/lib/db.php';
+
+// Одобренные отзывы. Если база недоступна — страница всё равно открывается,
+// просто без отзывов: падать целиком из-за секции с отзывами незачем.
+$reviews = [];
+try {
+    $config = require __DIR__ . '/config.php';
+    $reviews = db($config)->query(
+        "SELECT name, body FROM reviews
+         WHERE status = 'approved'
+         ORDER BY moderated_at DESC
+         LIMIT 20"
+    )->fetchAll();
+} catch (Throwable $e) {
+    error_log('Отзывы не загрузились: ' . $e->getMessage());
+}
+?>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -501,10 +522,15 @@
         <span class="rule-line" aria-hidden="true"></span>
       </div>
 
-      <!-- Модерация: одобренный отзыв добавляется сюда вручную блоком
-           <figure class="review"><blockquote>…</blockquote><figcaption>Имя</figcaption></figure> -->
       <div class="reviews-grid">
-        <p class="reviews-empty">Отзывов пока нет — оставьте первый.</p>
+        <?php if (!$reviews): ?>
+          <p class="reviews-empty">Отзывов пока нет — оставьте первый.</p>
+        <?php else: foreach ($reviews as $review): ?>
+          <figure class="review">
+            <blockquote><?= nl2br(e($review['body'])) ?></blockquote>
+            <figcaption><?= e($review['name']) ?></figcaption>
+          </figure>
+        <?php endforeach; endif; ?>
       </div>
 
       <details class="review-add">

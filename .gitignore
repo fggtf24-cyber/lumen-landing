@@ -8,3 +8,11 @@ _handoff2/
 Thumbs.db
 .DS_Store
 desktop.ini
+
+# Боевой конфиг: пароли от БД, почты и админки
+config.php
+
+# Логи и счётчики антиспама
+storage/*.log
+storage/rate_*.json
+storage/login_*.json
