@@ -168,6 +168,9 @@
     transition: transform 0.25s ease, box-shadow 0.25s ease;
   }
   .card:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 rgba(192,57,43,0.35); }
+  /* карточка-ссылка: не перекрашиваем текст глобальным стилем ссылок */
+  a.card, a.card:hover { color: inherit; }
+  .case-visit { margin-top: 12px; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--crimson); }
   .case-media {
     height: 200px; overflow: hidden; border-bottom: 1px solid rgba(28,23,18,0.2);
     display: grid; place-items: center;
@@ -374,9 +377,9 @@
     <div class="nav__links" id="navLinks">
       <a href="#services">Услуги</a>
       <a href="#cases">Кейсы</a>
+      <a href="#reviews">Отзывы</a>
       <a href="#process">Процесс</a>
       <a href="#team">Команда</a>
-      <a href="#reviews">Отзывы</a>
       <a href="#faq">Вопросы</a>
     </div>
     <a href="#contact" class="btn nav__cta">Обсудить</a>
@@ -463,7 +466,7 @@
       </div>
       <div class="cases-grid">
 
-        <article class="card" data-ink>
+        <a class="card" data-ink href="https://shorttermtherapy.ru/" target="_blank" rel="noopener">
           <div class="case-media">
             <picture>
               <source srcset="assets/case-therapy.webp" type="image/webp">
@@ -479,8 +482,9 @@
               <span class="metric__num">−<span data-count="88">0</span>%</span>
               <span class="metric__label">вес изображений</span>
             </div>
+            <span class="case-visit">shorttermtherapy.ru →</span>
           </div>
-        </article>
+        </a>
 
         <article class="card" data-ink>
           <div class="case-media"><span>превью проекта</span></div>
@@ -509,6 +513,40 @@
         </article>
 
       </div>
+    </section>
+
+    <!-- REVIEWS -->
+    <section id="reviews" class="section">
+      <div class="section-head">
+        <span class="stamp" aria-hidden="true">声</span>
+        <h2 class="section-title" data-ink>Отзывы</h2>
+        <span class="rule-line" aria-hidden="true"></span>
+      </div>
+
+      <!-- Модерация: одобренный отзыв добавляется сюда вручную блоком
+           <figure class="review"><blockquote>…</blockquote><figcaption>Имя</figcaption></figure> -->
+      <div class="reviews-grid">
+        <p class="reviews-empty">Отзывов пока нет — оставьте первый.</p>
+      </div>
+
+      <details class="review-add">
+        <summary>Оставить отзыв</summary>
+        <div id="reviewSlot" aria-live="polite">
+          <form class="form review-form" id="reviewForm">
+            <input class="hp" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <label class="sr-only" for="r-name">Имя</label>
+            <input required id="r-name" name="name" placeholder="Имя" autocomplete="name">
+            <label class="sr-only" for="r-contact">Контакт для связи, не публикуется</label>
+            <input id="r-contact" name="contact" placeholder="Контакт — не публикуется">
+            <label>
+              <span>Отзыв</span>
+              <textarea required rows="4" id="r-text" name="text" placeholder="Что делали, как шла работа, что получилось."></textarea>
+            </label>
+            <button type="submit" class="form__submit">Отправить на модерацию</button>
+            <p class="review-note">Отзыв попадёт к нам на проверку и появится на сайте после одобрения.</p>
+          </form>
+        </div>
+      </details>
     </section>
 
     <!-- PROCESS -->
@@ -544,7 +582,7 @@
     </section>
 
     <!-- TEAM -->
-    <section id="team" class="section">
+    <section id="team" class="section section--team">
       <div class="section-head">
         <span class="stamp" aria-hidden="true">匠</span>
         <h2 class="section-title" data-ink>Команда</h2>
@@ -574,39 +612,6 @@
       </div>
     </section>
 
-    <!-- REVIEWS -->
-    <section id="reviews" class="section section--team">
-      <div class="section-head">
-        <span class="stamp" aria-hidden="true">声</span>
-        <h2 class="section-title" data-ink>Отзывы</h2>
-        <span class="rule-line" aria-hidden="true"></span>
-      </div>
-
-      <!-- Модерация: одобренный отзыв добавляется сюда вручную блоком
-           <figure class="review"><blockquote>…</blockquote><figcaption>Имя</figcaption></figure> -->
-      <div class="reviews-grid">
-        <p class="reviews-empty">Отзывов пока нет — оставьте первый.</p>
-      </div>
-
-      <details class="review-add">
-        <summary>Оставить отзыв</summary>
-        <div id="reviewSlot" aria-live="polite">
-          <form class="form review-form" id="reviewForm">
-            <input class="hp" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
-            <label class="sr-only" for="r-name">Имя</label>
-            <input required id="r-name" name="name" placeholder="Имя" autocomplete="name">
-            <label class="sr-only" for="r-contact">Контакт для связи, не публикуется</label>
-            <input id="r-contact" name="contact" placeholder="Контакт — не публикуется">
-            <label>
-              <span>Отзыв</span>
-              <textarea required rows="4" id="r-text" name="text" placeholder="Что делали, как шла работа, что получилось."></textarea>
-            </label>
-            <button type="submit" class="form__submit">Отправить на модерацию</button>
-            <p class="review-note">Отзыв попадёт к нам на проверку и появится на сайте после одобрения.</p>
-          </form>
-        </div>
-      </details>
-    </section>
   </main>
 
   <!-- ===== DARK SECTION: FAQ + CONTACT + FOOTER ===== -->
