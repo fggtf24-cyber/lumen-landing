@@ -25,7 +25,7 @@ try {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lumen — Веб-студия полного цикла</title>
-<meta name="description" content="Лендинги, корпоративные сайты и веб-приложения — выкованы с точностью клинка. Измеримый результат. При необходимости усилим сайт ИИ.">
+<meta name="description" content="Лендинги, корпоративные сайты и веб-приложения — выкованы с точностью клинка. Не «красиво нарисуем», а измеримый результат.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -195,10 +195,6 @@ try {
   .service-row p { margin: 0; font-size: 15px; line-height: 1.65; opacity: 0.7; }
   .service-arrow { font-size: 26px; text-align: right; color: var(--crimson); }
 
-  .ai-note { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 14px; padding: 26px 12px 0; font-size: 14.5px; line-height: 1.65; color: rgba(28,23,18,0.72); }
-  .ai-note__plus { font-family: var(--jp); font-weight: 700; font-size: 18px; color: var(--crimson); line-height: 1.2; }
-  .ai-note__text { flex: 1; min-width: 240px; }
-  .ai-note__text strong { font-weight: 700; color: var(--ink-2); }
 
   /* ===== Cases ===== */
   /* колонка ограничена сверху, иначе единственный кейс растянется на всю ширину */
@@ -446,7 +442,7 @@ try {
       <div class="eyebrow"><span class="eyebrow__dash"></span> Веб-студия полного цикла · берём проекты</div>
       <span class="eyebrow__sweep" aria-hidden="true"></span>
       <h1 class="hero__title" data-ink>Сайты, которые <br><em>работают</em> — и продают</h1>
-      <p class="hero__sub" data-ink>Лендинги, корпоративные сайты и веб-приложения — выкованы с точностью клинка. Один удар — один результат: не «красиво нарисуем», а измеримый эффект. При необходимости усилим сайт ИИ.</p>
+      <p class="hero__sub" data-ink>Лендинги, корпоративные сайты и веб-приложения — выкованы с точностью клинка. Один удар — один результат: не «красиво нарисуем», а измеримый эффект.</p>
       <span class="hero-rule hero-rule--mid" aria-hidden="true"></span>
       <div class="hero__actions" data-ink>
         <a href="#contact" class="btn">Обсудить проект</a>
@@ -493,10 +489,6 @@ try {
           <p>Развитие, мониторинг и обновления после запуска. Держим сайт быстрым и живым.</p>
           <span class="service-arrow" aria-hidden="true">→</span>
         </div>
-      </div>
-      <div class="ai-note">
-        <span class="ai-note__plus" aria-hidden="true">＋</span>
-        <span class="ai-note__text"><strong>ИИ — по желанию.</strong> Чат-бот, умный поиск или автоматизация. Подключаем опцией к любому проекту — только когда это усилит результат.</span>
       </div>
     </section>
 
@@ -625,7 +617,7 @@ try {
         <div class="member" data-ink>
           <div class="member__top"><span class="member__mono">ИК</span><span class="member__kanji" aria-hidden="true">智</span></div>
           <h3>Иван Капанов</h3>
-          <p class="member__role">ИИ-инженер</p>
+          <p class="member__role">Разработка</p>
         </div>
         <div class="member" data-ink>
           <div class="member__top"><span class="member__mono">ОЗ</span><span class="member__kanji" aria-hidden="true">機</span></div>
@@ -655,7 +647,7 @@ try {
           <h2 data-ink>Обсудим ваш проект?</h2>
           <span class="stamp contact__stamp" aria-hidden="true">承</span>
         </div>
-        <p class="contact__lead">Расскажите, каким вы видите сайт — предложим структуру и оценим сроки после короткого брифа. Нужен ИИ — подскажем, где он даст эффект. Одно письмо — один точный ответ.</p>
+        <p class="contact__lead">Расскажите, каким вы видите сайт — предложим структуру и оценим сроки после короткого брифа. Одно письмо — один точный ответ.</p>
         <div class="contact__meta">
           <a href="mailto:lumensites24@bk.ru">lumensites24@bk.ru</a>
           <a href="https://t.me/fggtf24" target="_blank" rel="noopener">@fggtf24</a>
@@ -721,11 +713,11 @@ try {
 
   /* ===== FAQ accordion ===== */
   var faqData = [
-    { q: 'Сколько стоит проект?', a: 'Зависит от объёма. Лендинг — от базового пакета, корпоративный сайт и веб-приложение считаем индивидуально. ИИ-функции — по запросу, отдельным блоком. Точную оценку даём после короткого брифа.' },
-    { q: 'Сколько занимает разработка?', a: 'Лендинг — 2–3 недели. Корпоративный сайт — 4–6 недель. Веб-приложение — от 6 недель. ИИ-функции добавляют срок в зависимости от задачи.' },
-    { q: 'Обязательно ли добавлять ИИ?', a: 'Нет. Основа — качественный, быстрый сайт. ИИ подключаем только там, где он реально экономит время или повышает конверсию: чат-бот, умный поиск, автоматизация.' },
+    { q: 'Сколько стоит проект?', a: 'Зависит от объёма. Лендинг — от базового пакета, корпоративный сайт и веб-приложение считаем индивидуально. Точную оценку даём после короткого брифа.' },
+    { q: 'Сколько занимает разработка?', a: 'Лендинг — 2–3 недели. Корпоративный сайт — 4–6 недель. Веб-приложение — от 6 недель, зависит от объёма и интеграций.' },
+    { q: 'Что нужно от вас для старта?', a: 'Рассказать про бизнес и задачу сайта. Тексты и фото — если есть; если нет, поможем со структурой и подскажем, что подготовить. Ещё понадобятся доступы к домену и хостингу, либо оформим их с нуля.' },
     { q: 'Кому принадлежит код и данные?', a: 'Всё передаём вам: исходники, доступы и данные. Никакого vendor lock-in — вы не привязаны к нам после запуска.' },
-    { q: 'Что происходит после запуска?', a: 'Предлагаем абонентскую поддержку: мониторинг, доработки и развитие сайта. Если есть ИИ-функции — следим и за ними тоже.' }
+    { q: 'Что происходит после запуска?', a: 'Предлагаем абонентскую поддержку: мониторинг, обновления, доработки и развитие сайта. Держим его быстрым и живым.' }
   ];
 
   var faqList = document.getElementById('faqList');
