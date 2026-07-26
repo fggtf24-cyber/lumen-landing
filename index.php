@@ -132,18 +132,25 @@ try {
     background: radial-gradient(130% 100% at 50% 0%, #241E16 0%, #14110D 55%, #0D0B08 100%);
   }
   .hero__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-  .windline { position: absolute; left: 0; height: 1px; pointer-events: none; }
-  /* Раньше это была свободная полоса на 26% высоты — она попадала ровно на строку
-     eyebrow. Теперь привязана под текст, поэтому не зависит от высоты экрана. */
+  /* Полосы «ветра» идут в потоке hero, а не висят на процентах высоты: текст
+     здесь центрируется, поэтому любая полоса «в середине» рано или поздно
+     ложится на строку. В потоке они всегда попадают в промежуток между блоками. */
   .eyebrow__sweep {
     display: block; height: 1px; width: min(100%, 520px); margin-top: 12px;
     background: linear-gradient(90deg, transparent, rgba(233,225,206,0.5), transparent);
     animation: windline 7s linear infinite;
   }
-  /* Привязаны к краям hero, а не к процентам высоты: текст в нём центрируется,
-     поэтому любая полоса «в середине» рано или поздно ложится на строку. */
-  .windline--2 { top: 92px; width: 55%; background: linear-gradient(90deg, transparent, rgba(233,225,206,0.35), transparent); animation: windline 9s linear 2.5s infinite; }
-  .windline--3 { bottom: 148px; width: 35%; background: linear-gradient(90deg, transparent, rgba(192,57,43,0.5), transparent); animation: windline 8s linear 5s infinite; }
+  .hero-rule {
+    display: block; height: 1px; width: min(100%, 300px); margin-top: 46px;
+    background: linear-gradient(90deg, transparent, rgba(192,57,43,0.5), transparent);
+    animation: windline 8s linear 3s infinite;
+  }
+  /* полоса под абзацем — в промежутке до кнопок */
+  .hero-rule--mid {
+    width: min(100%, 420px); margin-top: 26px;
+    background: linear-gradient(90deg, transparent, rgba(233,225,206,0.35), transparent);
+    animation-duration: 9s; animation-delay: 2.5s;
+  }
 
   .kanji-col { position: absolute; top: 110px; right: clamp(18px, 4vw, 60px); display: flex; flex-direction: column; align-items: center; gap: 18px; pointer-events: none; }
   .kanji-col__text { writing-mode: vertical-rl; font-family: var(--jp); font-weight: 700; font-size: clamp(20px, 2.4vw, 30px); letter-spacing: 0.35em; color: rgba(233,225,206,0.3); }
@@ -342,10 +349,6 @@ try {
     .nav.open .nav__links { opacity: 1; transform: none; pointer-events: auto; }
     .nav__links a { padding: 15px clamp(16px, 3vw, 44px); font-size: 16px; letter-spacing: 0.08em; }
 
-    /* На узком экране кнопки встают в столбик и достают до нижней полосы —
-       декоративные линии убираем, sweep под eyebrow остаётся. */
-    .windline { display: none; }
-
     .hero { min-height: 100svh; }
     .hero__inner { padding: 104px 20px 110px; }
     .hero__title { font-size: clamp(38px, 10vw, 62px); }
@@ -392,7 +395,7 @@ try {
 
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .windline, .eyebrow__sweep, .contact__stamp { animation: none; }
+    .eyebrow__sweep, .hero-rule, .contact__stamp { animation: none; }
     [data-ink] { will-change: auto; }
     .card, .member, .service-row { transition: none; }
   }
@@ -428,8 +431,6 @@ try {
   <header class="hero">
     <canvas class="hero__canvas" id="leafCanvas" aria-hidden="true"></canvas>
 
-    <div class="windline windline--2" aria-hidden="true"></div>
-    <div class="windline windline--3" aria-hidden="true"></div>
 
     <div class="kanji-col" aria-hidden="true">
       <span class="kanji-col__text">職人の道</span>
@@ -442,10 +443,12 @@ try {
       <span class="eyebrow__sweep" aria-hidden="true"></span>
       <h1 class="hero__title" data-ink>Сайты, которые <br><em>работают</em> — и продают</h1>
       <p class="hero__sub" data-ink>Лендинги, корпоративные сайты и веб-приложения — выкованы с точностью клинка. Один удар — один результат: не «красиво нарисуем», а измеримый эффект. При необходимости усилим сайт ИИ.</p>
+      <span class="hero-rule hero-rule--mid" aria-hidden="true"></span>
       <div class="hero__actions" data-ink>
         <a href="#contact" class="btn">Обсудить проект</a>
         <a href="#cases" class="btn btn--outline">Кейсы ↓</a>
       </div>
+      <span class="hero-rule" aria-hidden="true"></span>
     </div>
 
     <div class="hero__fade" aria-hidden="true"></div>
