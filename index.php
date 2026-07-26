@@ -135,21 +135,25 @@ try {
   /* Полосы «ветра» идут в потоке hero, а не висят на процентах высоты: текст
      здесь центрируется, поэтому любая полоса «в середине» рано или поздно
      ложится на строку. В потоке они всегда попадают в промежуток между блоками. */
+  /* Задержка ОТРИЦАТЕЛЬНАЯ: анимация стартует уже в середине цикла, поэтому
+     линии видны и движутся с первого кадра. С положительной задержкой браузер
+     до старта показывал статичное состояние, а потом резко прыгал в кадр 0%
+     (opacity: 0) — линия мигала и пропадала. backwards страхует тот же случай. */
   .eyebrow__sweep {
     display: block; height: 1px; width: min(100%, 520px); margin-top: 12px;
     background: linear-gradient(90deg, transparent, rgba(233,225,206,0.5), transparent);
-    animation: windline 7s linear infinite;
+    animation: windline 7s linear -3s infinite backwards;
   }
   .hero-rule {
     display: block; height: 1px; width: min(100%, 300px); margin-top: 46px;
     background: linear-gradient(90deg, transparent, rgba(192,57,43,0.5), transparent);
-    animation: windline 8s linear 3s infinite;
+    animation: windline 8s linear -2s infinite backwards;
   }
   /* полоса под абзацем — в промежутке до кнопок */
   .hero-rule--mid {
     width: min(100%, 420px); margin-top: 26px;
     background: linear-gradient(90deg, transparent, rgba(233,225,206,0.35), transparent);
-    animation-duration: 9s; animation-delay: 2.5s;
+    animation-duration: 9s; animation-delay: -4s;
   }
 
   .kanji-col { position: absolute; top: 110px; right: clamp(18px, 4vw, 60px); display: flex; flex-direction: column; align-items: center; gap: 18px; pointer-events: none; }
