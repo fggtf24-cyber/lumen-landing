@@ -1,58 +1,58 @@
 /*
- * Как подключить форму лендинга к бэкенду.
- * Во фронте (../index.html) нужно сделать 2 правки — см. шаги ниже.
+ * Справка: как фронтенд общается с send.php.
+ * Это НЕ файл для подключения — код уже встроен в ../index.html (внизу, в <script>).
+ * Здесь он выписан отдельно, чтобы бэкендеру был виден контракт.
+ *
+ * Менять во фронте нужно только одну строку — и только если send.php окажется
+ * на другом домене (сайт на GitHub Pages, скрипт на Beget):
+ *
+ *     var FORM_ENDPOINT = 'send.php';   →   'https://домен.ru/send.php'
  */
 
-/* ─────────────────────────────────────────────────────────────────────────
- * ШАГ 1. Honeypot-поле (антиспам). Добавьте внутрь <form id="contactForm">
- * скрытое поле — реальные люди его не видят и не заполняют, боты заполняют:
- *
- *   <input type="text" name="company" tabindex="-1" autocomplete="off"
- *          style="position:absolute;left:-9999px" aria-hidden="true">
- * ───────────────────────────────────────────────────────────────────────── */
+var FORM_ENDPOINT = 'send.php';
 
-/* ─────────────────────────────────────────────────────────────────────────
- * ШАГ 2. Замените текущий обработчик submit формы в <script> внизу index.html
- * на этот. Пропишите свой URL API в LEAD_ENDPOINT.
- * ───────────────────────────────────────────────────────────────────────── */
+// Обе формы обрабатываются одной функцией, отличаются только type и текстом успеха:
+//   wireForm('contactForm', 'contactSlot', 'lead',   'Заявка принята', '…');
+//   wireForm('reviewForm',  'reviewSlot',  'review', 'Спасибо за отзыв', '…');
 
-var LEAD_ENDPOINT = 'https://ВАШ-API-ХОСТ/api/lead'; // ← подставить после деплоя
+function wireForm(formId, slotId, type, okTitle, okText) {
+  var form = document.getElementById(formId);
+  if (!form) return;
 
-document.getElementById('contactForm').addEventListener('submit', function (e) {
-  e.preventDefault();
-  var form = e.currentTarget;
-  var slot = document.getElementById('contactSlot');
-  var btn = form.querySelector('.form__submit');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = form.querySelector('.form__submit');
+    var note = form.querySelector('.form-note');
+    var label = btn.textContent;
 
-  var payload = {
-    name: form.elements.name.value,
-    contact: form.elements.contact.value,
-    message: form.elements.message.value,
-    company: form.elements.company ? form.elements.company.value : '' // honeypot
-  };
-
-  btn.disabled = true;
-  var original = btn.textContent;
-  btn.textContent = 'Отправляем…';
-
-  fetch(LEAD_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  })
-    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(function () {
-      // тот же блок успеха, что и в текущей верстке
-      slot.innerHTML =
-        '<div class="form-success">' +
-        '<div class="stamp" aria-hidden="true">承</div>' +
-        '<h3>Заявка принята</h3>' +
-        '<p>Свяжемся с вами в ближайшее время.</p>' +
-        '</div>';
-    })
-    .catch(function () {
-      btn.disabled = false;
-      btn.textContent = original;
-      alert('Не удалось отправить заявку. Напишите нам в Telegram @fggtf24 или на fggtf24@gmail.com');
+    // Отправляем только те поля, что есть в этой форме (+ honeypot company).
+    var data = { type: type };
+    ['name', 'contact', 'message', 'text', 'company'].forEach(function (k) {
+      if (form.elements[k]) data[k] = form.elements[k].value;
     });
-});
+
+    btn.disabled = true;
+    btn.textContent = 'Отправляем…';
+
+    fetch(FORM_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (res) {
+        if (!res || !res.ok) return Promise.reject(res && res.error);
+        // успех — форма заменяется блоком «принято»
+        document.getElementById(slotId).innerHTML =
+          '<div class="form-success"><div class="stamp" aria-hidden="true">承</div>' +
+          '<h3>' + okTitle + '</h3><p>' + okText + '</p></div>';
+      })
+      .catch(function () {
+        // ошибка — форму оставляем, чтобы можно было повторить
+        btn.disabled = false;
+        btn.textContent = label;
+        note.textContent = 'Отправить не получилось. Напишите нам в Telegram @fggtf24 или на lumensites24@bk.ru.';
+        note.style.color = 'var(--crimson)';
+      });
+  });
+}

@@ -161,7 +161,8 @@
   .ai-note__text strong { font-weight: 700; color: var(--ink-2); }
 
   /* ===== Cases ===== */
-  .cases-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 26px; }
+  /* колонка ограничена сверху, иначе единственный кейс растянется на всю ширину */
+  .cases-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 400px)); gap: 26px; justify-content: start; }
   .card {
     display: flex; flex-direction: column; background: var(--paper-2);
     border: 1px solid rgba(28,23,18,0.2); box-shadow: 5px 5px 0 rgba(28,23,18,0.14);
@@ -226,6 +227,8 @@
   .review-add[open] > summary { margin-bottom: 18px; }
   .review-form { max-width: 560px; border: 1px solid rgba(28,23,18,0.2); }
   .review-note { margin: 0; font-size: 13px; line-height: 1.55; color: rgba(28,23,18,0.62); }
+  .form-note:empty { display: none; }
+  .form .form-note { margin: 0; font-size: 13px; line-height: 1.55; color: rgba(28,23,18,0.62); }
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 
   /* ===== Dark section (FAQ + contact + footer) ===== */
@@ -486,31 +489,6 @@
           </div>
         </a>
 
-        <article class="card" data-ink>
-          <div class="case-media"><span>превью проекта</span></div>
-          <div class="case-body">
-            <span class="tag">Сайт + чат-бот</span>
-            <h3>Сервис услуг</h3>
-            <p>Было: заявки терялись в почте. Стало: понятный сайт с формами; бот квалифицирует лиды.</p>
-            <div class="metric">
-              <span class="metric__num">−<span data-count="60">0</span>%</span>
-              <span class="metric__label">времени на заявку</span>
-            </div>
-          </div>
-        </article>
-
-        <article class="card" data-ink>
-          <div class="case-media"><span>превью проекта</span></div>
-          <div class="case-body">
-            <span class="tag">Корп. портал</span>
-            <h3>База знаний</h3>
-            <p>Было: сайт без структуры, длинный FAQ. Стало: удобный портал с понятной навигацией.</p>
-            <div class="metric">
-              <span class="metric__num">−<span data-count="45">0</span>%</span>
-              <span class="metric__label">обращений в саппорт</span>
-            </div>
-          </div>
-        </article>
 
       </div>
     </section>
@@ -543,7 +521,7 @@
               <textarea required rows="4" id="r-text" name="text" placeholder="Что делали, как шла работа, что получилось."></textarea>
             </label>
             <button type="submit" class="form__submit">Отправить на модерацию</button>
-            <p class="review-note">Отзыв попадёт к нам на проверку и появится на сайте после одобрения.</p>
+            <p class="form-note review-note">Отзыв попадёт к нам на проверку и появится на сайте после одобрения.</p>
           </form>
         </div>
       </details>
@@ -634,12 +612,13 @@
         </div>
         <p class="contact__lead">Расскажите, каким вы видите сайт — предложим структуру и оценим сроки после короткого брифа. Нужен ИИ — подскажем, где он даст эффект. Одно письмо — один точный ответ.</p>
         <div class="contact__meta">
-          <a href="mailto:fggtf24@gmail.com">fggtf24@gmail.com</a>
+          <a href="mailto:lumensites24@bk.ru">lumensites24@bk.ru</a>
           <a href="https://t.me/fggtf24" target="_blank" rel="noopener">@fggtf24</a>
         </div>
       </div>
       <div id="contactSlot" aria-live="polite">
         <form class="form" id="contactForm">
+          <input class="hp" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
           <label class="sr-only" for="f-name">Ваше имя</label>
           <input required id="f-name" name="name" placeholder="Ваше имя" autocomplete="name">
           <label class="sr-only" for="f-contact">Телефон, почта или телеграм</label>
@@ -649,6 +628,7 @@
             <textarea rows="5" id="f-message" name="message" placeholder="Например: лендинг для кофейни — обложка, меню, «о нас», галерея, форма брони столика. Нравится тёплый минимализм. Хочу онлайн-оплату."></textarea>
           </label>
           <button type="submit" class="form__submit">Отправить заявку</button>
+          <p class="form-note"></p>
         </form>
       </div>
     </div>
@@ -658,7 +638,7 @@
       <div class="footer__inner">
         <span class="footer__brand"><span class="stamp" aria-hidden="true">光</span>Lumen — веб-студия полного цикла</span>
         <div class="footer__links">
-          <a href="mailto:fggtf24@gmail.com">fggtf24@gmail.com</a>
+          <a href="mailto:lumensites24@bk.ru">lumensites24@bk.ru</a>
           <a href="https://t.me/fggtf24" target="_blank" rel="noopener">@fggtf24</a>
         </div>
         <span>© 2026 · 一撃一果</span>
@@ -750,59 +730,56 @@
     if (open) open.style.maxHeight = open.scrollHeight + 'px';
   });
 
-  /* ===== Contact form ===== */
-  document.getElementById('contactForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    document.getElementById('contactSlot').innerHTML =
-      '<div class="form-success">' +
-      '<div class="stamp" aria-hidden="true">承</div>' +
-      '<h3>Заявка принята</h3>' +
-      '<p>Свяжемся с вами в ближайшее время.</p>' +
-      '</div>';
-  });
+  /* ===== Формы: заявка и отзыв → send.php ===== */
+  // PHP-скрипт лежит рядом с index.html (см. backend/README.md).
+  // Пока сайт на GitHub Pages, PHP не выполняется — форма честно покажет,
+  // куда написать, вместо ложного «принято».
+  var FORM_ENDPOINT = 'send.php';
 
-  /* ===== Отзыв → на модерацию ===== */
-  // Адрес бэкенда (см. backend/README.md). Пусто = приём ещё не подключён.
-  var API_BASE = '';
-  document.getElementById('reviewForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var form = e.currentTarget;
-    var btn = form.querySelector('.form__submit');
-    var note = form.querySelector('.review-note');
-    var label = btn.textContent;
+  function wireForm(formId, slotId, type, okTitle, okText) {
+    var form = document.getElementById(formId);
+    if (!form) return;
 
-    function fail() {
-      btn.disabled = false;
-      btn.textContent = label;
-      note.textContent = 'Отправить не получилось. Пришлите отзыв в Telegram @fggtf24 или на fggtf24@gmail.com — опубликуем после проверки.';
-      note.style.color = 'var(--crimson)';
-    }
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var btn = form.querySelector('.form__submit');
+      var note = form.querySelector('.form-note');
+      var label = btn.textContent;
 
-    if (!API_BASE) return fail();
+      var data = { type: type };
+      ['name', 'contact', 'message', 'text', 'company'].forEach(function (k) {
+        if (form.elements[k]) data[k] = form.elements[k].value;
+      });
 
-    btn.disabled = true;
-    btn.textContent = 'Отправляем…';
-    fetch(API_BASE + '/api/review', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: form.elements.name.value,
-        contact: form.elements.contact.value,
-        text: form.elements.text.value,
-        company: form.elements.company.value // honeypot
+      btn.disabled = true;
+      btn.textContent = 'Отправляем…';
+
+      fetch(FORM_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
       })
-    })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); })
-      .then(function () {
-        document.getElementById('reviewSlot').innerHTML =
-          '<div class="form-success">' +
-          '<div class="stamp" aria-hidden="true">承</div>' +
-          '<h3>Спасибо за отзыв</h3>' +
-          '<p>Отправили на модерацию — появится на сайте после проверки.</p>' +
-          '</div>';
-      })
-      .catch(fail);
-  });
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+        .then(function (res) {
+          if (!res || !res.ok) return Promise.reject(res && res.error);
+          document.getElementById(slotId).innerHTML =
+            '<div class="form-success">' +
+            '<div class="stamp" aria-hidden="true">承</div>' +
+            '<h3>' + okTitle + '</h3>' +
+            '<p>' + okText + '</p>' +
+            '</div>';
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.textContent = label;
+          note.textContent = 'Отправить не получилось. Напишите нам в Telegram @fggtf24 или на lumensites24@bk.ru.';
+          note.style.color = 'var(--crimson)';
+        });
+    });
+  }
+
+  wireForm('contactForm', 'contactSlot', 'lead', 'Заявка принята', 'Свяжемся с вами в ближайшее время.');
+  wireForm('reviewForm', 'reviewSlot', 'review', 'Спасибо за отзыв', 'Отправили на модерацию — появится на сайте после проверки.');
 
   /* ===== Counters ===== */
   var countEls = [].slice.call(document.querySelectorAll('[data-count]'));
