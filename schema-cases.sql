@@ -24,12 +24,14 @@ CREATE TABLE IF NOT EXISTS cases (
 
 -- Первый кейс — тот, что раньше был вшит в index.php.
 -- Его картинки лежат в репозитории по адресу assets/cases/.
-INSERT INTO cases (title, tag, body, url, link_label, image, image_webp, image_alt,
+-- id указан явно, а ON DUPLICATE KEY ничего не меняет: файл можно выполнять
+-- повторно, дубля не будет и ваши правки этого кейса не затрутся.
+INSERT INTO cases (id, title, tag, body, url, link_label, image, image_webp, image_alt,
                    metric_value, metric_label, position, published, created_at)
-SELECT 'Терапевтическая группа', 'Лендинг',
-       'Набор в закрытую группу: программа, формат, ведущие. Форма заявки с отправкой на почту, антиспам и сжатые фото — сайт грузится быстро.',
-       'https://shorttermtherapy.ru/', 'shorttermtherapy.ru',
-       'case-therapy.jpg', 'case-therapy.webp',
-       'Лендинг терапевтической группы: первый экран с фотографией ведущих',
-       '−88%', 'вес изображений', 0, 1, NOW()
-WHERE NOT EXISTS (SELECT 1 FROM cases);
+VALUES (1, 'Терапевтическая группа', 'Лендинг',
+        'Набор в закрытую группу: программа, формат, ведущие. Форма заявки с отправкой на почту, антиспам и сжатые фото — сайт грузится быстро.',
+        'https://shorttermtherapy.ru/', 'shorttermtherapy.ru',
+        'case-therapy.jpg', 'case-therapy.webp',
+        'Лендинг терапевтической группы: первый экран с фотографией ведущих',
+        '−88%', 'вес изображений', 0, 1, NOW())
+ON DUPLICATE KEY UPDATE id = id;
