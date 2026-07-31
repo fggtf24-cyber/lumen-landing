@@ -16,3 +16,10 @@ config.php
 storage/*.log
 storage/rate_*.json
 storage/login_*.json
+
+# Картинки кейсов, загруженные через админку: живут на хостинге, не в репозитории.
+# Снимок первого кейса — исключение, он часть вёрстки.
+assets/cases/*
+!assets/cases/.htaccess
+!assets/cases/case-therapy.jpg
+!assets/cases/case-therapy.webp

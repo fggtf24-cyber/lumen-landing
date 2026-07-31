@@ -81,6 +81,7 @@ $csrf   = csrfToken();
           <?= e($title) ?> <span class="count"><?= (int) ($counts[$key] ?? 0) ?></span>
         </a>
       <?php endforeach; ?>
+      <a class="tabs__section" href="cases.php">Кейсы →</a>
     </nav>
     <a class="logout" href="logout.php">Выйти</a>
   </header>

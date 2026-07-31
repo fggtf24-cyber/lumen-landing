@@ -3,20 +3,27 @@ declare(strict_types=1);
 
 require __DIR__ . '/lib/auth.php';   // e() — экранирование вывода
 require __DIR__ . '/lib/db.php';
+require __DIR__ . '/lib/cases.php';
 
-// Одобренные отзывы. Если база недоступна — страница всё равно открывается,
-// просто без отзывов: падать целиком из-за секции с отзывами незачем.
+// Отзывы и кейсы приходят из базы. Если она недоступна — страница всё равно
+// открывается: отзывы просто не показываем, а вместо кейсов остаётся первая
+// работа, вшитая в вёрстку. Падать целиком из-за одной секции незачем.
 $reviews = [];
+$cases   = [];
 try {
     $config = require __DIR__ . '/config.php';
-    $reviews = db($config)->query(
+    $pdo    = db($config);
+
+    $reviews = $pdo->query(
         "SELECT name, body FROM reviews
          WHERE status = 'approved'
          ORDER BY moderated_at DESC
          LIMIT 20"
     )->fetchAll();
+
+    $cases = casesPublished($pdo);
 } catch (Throwable $e) {
-    error_log('Отзывы не загрузились: ' . $e->getMessage());
+    error_log('Данные для главной не загрузились: ' . $e->getMessage());
 }
 ?>
 <!DOCTYPE html>
@@ -500,6 +507,7 @@ try {
         <span class="rule-line" aria-hidden="true"></span>
       </div>
       <div class="cases-grid">
+<?php if (!$cases): /* база молчит — показываем первую работу из вёрстки */ ?>
 
         <a class="card" data-ink href="https://shorttermtherapy.ru/" target="_blank" rel="noopener">
           <div class="case-media">
@@ -521,7 +529,51 @@ try {
           </div>
         </a>
 
-
+<?php else: foreach ($cases as $case):
+        $tag       = 'div';
+        $attrs     = '';
+        if ($case['url'] !== '') {
+            $tag   = 'a';
+            $attrs = ' href="' . e($case['url']) . '" target="_blank" rel="noopener"';
+        }
+        $img  = caseImageUrl($case['image']);
+        $webp = caseImageUrl($case['image_webp']);
+        [$mPrefix, $mNumber, $mSuffix] = caseMetricParts((string) $case['metric_value']);
+?>
+        <<?= $tag ?> class="card" data-ink<?= $attrs ?>>
+          <div class="case-media">
+            <?php if ($img !== ''): ?>
+              <picture>
+                <?php if ($webp !== ''): ?><source srcset="<?= e($webp) ?>" type="image/webp"><?php endif; ?>
+                <img src="<?= e($img) ?>" loading="lazy" decoding="async" alt="<?= e($case['image_alt']) ?>">
+              </picture>
+            <?php else: ?>
+              <span><?= e($case['title']) ?></span>
+            <?php endif; ?>
+          </div>
+          <div class="case-body">
+            <?php if ($case['tag'] !== ''): ?><span class="tag"><?= e($case['tag']) ?></span><?php endif; ?>
+            <h3><?= e($case['title']) ?></h3>
+            <p><?= nl2br(e($case['body'])) ?></p>
+            <?php if ($case['metric_value'] !== ''): ?>
+              <div class="metric">
+                <span class="metric__num"><?php
+                    echo e($mPrefix);
+                    // Число оживляем счётчиком, как в исходной вёрстке.
+                    echo $mNumber === null ? '' : '<span data-count="' . (int) $mNumber . '">0</span>';
+                    echo e($mSuffix);
+                ?></span>
+                <?php if ($case['metric_label'] !== ''): ?>
+                  <span class="metric__label"><?= e($case['metric_label']) ?></span>
+                <?php endif; ?>
+              </div>
+            <?php endif; ?>
+            <?php if ($case['url'] !== '' && $case['link_label'] !== ''): ?>
+              <span class="case-visit"><?= e($case['link_label']) ?> →</span>
+            <?php endif; ?>
+          </div>
+        </<?= $tag ?>>
+<?php endforeach; endif; ?>
       </div>
     </section>
 
